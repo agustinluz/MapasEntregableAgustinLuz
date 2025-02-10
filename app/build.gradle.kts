@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -68,4 +69,9 @@ dependencies {
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.6")
     implementation(libs.androidx.runtime.livedata)
+
+    implementation(platform("com.google.firebase:firebase-bom:32.2.0"))
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation ("com.google.firebase:firebase-firestore-ktx:24.7.0")
+
 }

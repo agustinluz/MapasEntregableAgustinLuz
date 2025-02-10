@@ -11,6 +11,7 @@ composeBom = "2024.04.01"
 navigationCompose = "2.8.6"
 runtimeLivedata = "1.7.7"
 playServicesMaps = "19.0.0"
+google-services = "4.3.15"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,4 +36,5 @@ play-services-maps = { group = "com.google.android.gms", name = "play-services-m
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "383661421100",
+    "project_id": "mapasfinal-f9f3b",
+    "storage_bucket": "mapasfinal-f9f3b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:383661421100:android:c492dc5a59d5af00c0d789",
+        "android_client_info": {
+          "package_name": "com.profinales.mapasentregable"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlt-sWexxIruH6Hot-xP80OuLl9Aua4XM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -6,6 +6,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.location.*
+import com.profinales.mapasentregable.repositorios.RepositroioFire
+import com.profinales.mapasentregable.repositorios.Ubicacion
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 
 /**
  * ViewModel para manejar la ubicación en tiempo real del usuario.
@@ -19,6 +23,9 @@ class UbicacionViewModel(application: Application) : AndroidViewModel(applicatio
     // Variable para almacenar la ubicación en vivo
     private val _ubicacionAct = MutableLiveData<Location?>()
     val ubicacionAct: LiveData<Location?> = _ubicacionAct
+
+
+    private val repositorio = RepositroioFire()
 
     // Configuración de la solicitud de ubicación
     private val locationRequest = LocationRequest.create().apply {
@@ -50,5 +57,14 @@ class UbicacionViewModel(application: Application) : AndroidViewModel(applicatio
      */
     fun detenerActualizacionUbicacion() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+    fun guardarUbicacionEnFirebase() {
+        _ubicacionAct.value?.let { location ->
+            val ubicacion = Ubicacion(location.latitude, location.longitude)
+            viewModelScope.launch {
+                repositorio.guardarUbicacion(ubicacion)
+            }
+        }
     }
 }
