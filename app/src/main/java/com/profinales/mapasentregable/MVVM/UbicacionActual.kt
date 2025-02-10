@@ -1,70 +1,91 @@
 package com.profinales.mapasentregable.MVVM
-import android.annotation.SuppressLint
+
+import android.Manifest
 import android.app.Application
+import android.content.pm.PackageManager
 import android.location.Location
+import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.location.*
-import com.profinales.mapasentregable.repositorios.RepositroioFire
+import com.profinales.mapasentregable.repositorios.RepositorioFire
 import com.profinales.mapasentregable.repositorios.Ubicacion
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.launch
 
 /**
- * ViewModel para manejar la ubicación en tiempo real del usuario.
+ * ViewModel para manejar la ubicación en tiempo real y mostrar rutas en el mapa.
  */
-class UbicacionViewModel(application: Application) : AndroidViewModel(application) {
+class LocationViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Cliente para obtener la ubicación del usuario
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(application)
 
-    // Variable para almacenar la ubicación en vivo
-    private val _ubicacionAct = MutableLiveData<Location?>()
-    val ubicacionAct: LiveData<Location?> = _ubicacionAct
+    private val _ubicacionActual = MutableLiveData<Location?>()
+    val ubicacionAct: LiveData<Location?> = _ubicacionActual
 
+    private val _ubicacionesGuardadas = MutableLiveData<List<Ubicacion>>()
+    val ubicacionesGuardadas: LiveData<List<Ubicacion>> = _ubicacionesGuardadas
 
-    private val repositorio = RepositroioFire()
+    private val repository = RepositorioFire()
 
-    // Configuración de la solicitud de ubicación
     private val locationRequest = LocationRequest.create().apply {
-        interval = 10000
-        fastestInterval = 5000
         priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        interval = 5000
     }
 
-    // Callback que se ejecuta cuando la ubicación cambia
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(locationResult: LocationResult) {
-            // Guardamos la última ubicación obtenida
             locationResult.lastLocation?.let { location ->
-                _ubicacionAct.value = location
+                _ubicacionActual.value = location
             }
         }
     }
 
-    /**
-     * Inicia la actualización de la ubicación.
-     */
-    @SuppressLint("MissingPermission")
     fun iniciarActualizacionUbicacion() {
+        val context = getApplication<Application>().applicationContext
+        if (ActivityCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(
+                context, Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // 🔴 Log para depuración
+            Log.e("LocationViewModel", "Permisos de ubicación no concedidos")
+            return
+        }
+
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
     }
 
-    /**
-     * Detiene la actualización de la ubicación.
-     */
     fun detenerActualizacionUbicacion() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
+    /**
+     * Guarda la ubicación actual en Firebase Firestore.
+     */
     fun guardarUbicacionEnFirebase() {
-        _ubicacionAct.value?.let { location ->
+        _ubicacionActual.value?.let { location ->
             val ubicacion = Ubicacion(location.latitude, location.longitude)
-            viewModelScope.launch {
-                repositorio.guardarUbicacion(ubicacion)
-            }
+            repository.guardarUbicacion(ubicacion)
         }
+    }
+
+    /**
+     * Escucha ubicaciones en tiempo real desde Firebase.
+     */
+    fun escucharUbicaciones() {
+        repository.escucharUbicacionesEnTiempoReal { ubicaciones ->
+            _ubicacionesGuardadas.postValue(ubicaciones)
+        }
+    }
+
+    /**
+     * Detiene la escucha de ubicaciones.
+     */
+    fun detenerEscuchaUbicaciones() {
+        repository.detenerEscucha()
     }
 }

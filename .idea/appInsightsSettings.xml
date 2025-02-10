@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.profinales.mapasentregable" />
+                  <option name="mobileSdkAppId" value="1:383661421100:android:c492dc5a59d5af00c0d789" />
+                  <option name="projectId" value="mapasfinal-f9f3b" />
+                  <option name="projectNumber" value="383661421100" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

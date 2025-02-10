@@ -1,8 +1,9 @@
 package com.profinales.mapasentregable.repositorios
 
+import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.ktx.toObject
-import kotlinx.coroutines.tasks.await
 
 /**
  * Modelo de datos para una ubicación.
@@ -15,29 +16,36 @@ data class Ubicacion(
 /**
  * Repositorio para manejar Firebase Firestore.
  */
-class RepositroioFire {
+class RepositorioFire {
 
-    // Instancia de Firestore
     private val db = FirebaseFirestore.getInstance()
-
-    // Referencia a la colección "ubicaciones"
     private val ubicacionesRef = db.collection("ubicaciones")
+
+    private var listener: ListenerRegistration? = null
 
     /**
      * Guarda una ubicación en Firebase Firestore.
      */
-    suspend fun guardarUbicacion(ubicacion: Ubicacion) {
-        ubicacionesRef.add(ubicacion).await()
+    fun guardarUbicacion(ubicacion: Ubicacion) {
+        ubicacionesRef.add(ubicacion)
+            .addOnSuccessListener { Log.d("RepositorioFire", "Ubicación guardada correctamente") }
+            .addOnFailureListener { e -> Log.e("RepositorioFire", "Error al guardar ubicación", e) }
     }
 
     /**
-     * Obtiene todas las ubicaciones guardadas en Firebase Firestore.
+     * Obtiene las ubicaciones en tiempo real y ejecuta el callback cuando hay cambios.
      */
-    suspend fun obtenerUbicaciones(): List<Ubicacion> {
-        return try {
-            ubicacionesRef.get().await().documents.mapNotNull { it.toObject<Ubicacion>() }
-        } catch (e: Exception) {
-            emptyList()
+    fun escucharUbicacionesEnTiempoReal(onUbicacionesActualizadas: (List<Ubicacion>) -> Unit) {
+        listener = ubicacionesRef.addSnapshotListener { snapshot, _ ->
+            val ubicaciones = snapshot?.documents?.mapNotNull { it.toObject<Ubicacion>() } ?: emptyList()
+            onUbicacionesActualizadas(ubicaciones)
         }
+    }
+
+    /**
+     * Detiene la escucha de cambios en Firestore.
+     */
+    fun detenerEscucha() {
+        listener?.remove()
     }
 }
