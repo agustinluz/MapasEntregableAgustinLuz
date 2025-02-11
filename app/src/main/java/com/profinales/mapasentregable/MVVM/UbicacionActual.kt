@@ -51,7 +51,6 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
                 context, Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // 🔴 Log para depuración
             Log.e("LocationViewModel", "Permisos de ubicación no concedidos")
             return
         }
@@ -68,11 +67,16 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
      */
     fun guardarUbicacionEnFirebase() {
         _ubicacionActual.value?.let { location ->
-            val ubicacion = Ubicacion(location.latitude, location.longitude)
+            val ubicacion = Ubicacion(location.latitude.toString(), location.longitude)
             repository.guardarUbicacion(ubicacion)
         }
     }
-
+    fun eliminarUbicacion(id: String) {
+        repository.eliminarUbicacion(id)
+    }
+    fun actualizarUbicacion(id: String, nuevaUbicacion: Ubicacion) {
+        repository.actualizarUbicacion(id, nuevaUbicacion)
+    }
     /**
      * Escucha ubicaciones en tiempo real desde Firebase.
      */
@@ -87,5 +91,10 @@ class LocationViewModel(application: Application) : AndroidViewModel(application
      */
     fun detenerEscuchaUbicaciones() {
         repository.detenerEscucha()
+    }
+
+    fun guardarUbicacionClicada(latLng: com.google.android.gms.maps.model.LatLng) {
+        val ubicacion = Ubicacion(latLng.latitude.toString(), latLng.longitude)
+        repository.guardarUbicacion(ubicacion)
     }
 }

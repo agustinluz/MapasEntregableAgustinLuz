@@ -1,7 +1,12 @@
 package com.profinales.mapasentregable.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -15,6 +20,11 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.maps.android.compose.*
 import com.profinales.mapasentregable.MVVM.LocationViewModel
+import com.profinales.mapasentregable.componentes.BotonFlotante
+import com.profinales.mapasentregable.repositorios.Ubicacion
+import androidx.compose.foundation.lazy.items
+
+
 
 /**
  * Pantalla del mapa donde se muestra la ubicación en tiempo real del usuario
@@ -25,6 +35,8 @@ fun Mapa(viewModel: LocationViewModel = viewModel()) {
 
     val ubicacionActual by viewModel.ubicacionAct.observeAsState()
     val ubicacionesGuardadas by viewModel.ubicacionesGuardadas.observeAsState(emptyList())
+    val coloresRutas = listOf(Color.Blue, Color.Red, Color.Green, Color.Magenta)
+
 
     val camaraPositionState = rememberCameraPositionState {
         ubicacionActual?.let {
@@ -47,13 +59,17 @@ fun Mapa(viewModel: LocationViewModel = viewModel()) {
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-
+        // Mapa de Google
         GoogleMap(
             modifier = Modifier.matchParentSize(),
-            cameraPositionState = camaraPositionState
+            cameraPositionState = camaraPositionState,
+            properties = MapProperties(
+                isMyLocationEnabled = true
+            ),
+            onMapClick = { latLng ->
+                viewModel.guardarUbicacionClicada(latLng)
+            }
         ) {
-
-            // Mostrar la ubicación actual con un marcador azul
             ubicacionActual?.let { location ->
                 Marker(
                     state = MarkerState(position = LatLng(location.latitude, location.longitude)),
@@ -62,32 +78,37 @@ fun Mapa(viewModel: LocationViewModel = viewModel()) {
                 )
             }
 
-            // Mostrar todas las ubicaciones guardadas en Firebase con marcadores
             ubicacionesGuardadas.forEach { ubicacion ->
                 Marker(
                     state = MarkerState(position = LatLng(ubicacion.latitud, ubicacion.longitud)),
                     title = "Ubicación Guardada"
                 )
             }
+        }
 
-            // Dibujar una línea entre los puntos para representar la ruta
-            if (ubicacionesGuardadas.size > 1) {
-                Polyline(
-                    points = ubicacionesGuardadas.map { LatLng(it.latitud, it.longitud) },
-                    color = Color.Blue,
-                    width = 5f
-                )
+        // Lista de ubicaciones sobre el mapa
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter) // Colocar en la parte superior
+        ) {
+            items(ubicacionesGuardadas, key = { it.id }) { ubicacion ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = "Lat: ${ubicacion.latitud}, Lng: ${ubicacion.longitud}")
+                    IconButton(onClick = { viewModel.eliminarUbicacion(ubicacion.id) }) {
+                        Icon(imageVector = Icons.Default.Delete, contentDescription = "Eliminar")
+                    }
+                }
             }
         }
 
-        // Botón para guardar la ubicación actual
-        Button(
-            onClick = { viewModel.guardarUbicacionEnFirebase() },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(16.dp)
-        ) {
-            Text("Guardar Ubicación")
-        }
+
+        BotonFlotante(viewModel)
     }
+
 }

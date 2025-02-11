@@ -9,9 +9,15 @@ import com.google.firebase.firestore.ktx.toObject
  * Modelo de datos para una ubicación.
  */
 data class Ubicacion(
+    val id: String = " ",
     val latitud: Double = 0.0,
     val longitud: Double = 0.0
-)
+) {
+    override fun toString(): String {
+        return "Latitud: $latitud, Longitud: $longitud"
+    }
+}
+
 
 /**
  * Repositorio para manejar Firebase Firestore.
@@ -27,9 +33,22 @@ class RepositorioFire {
      * Guarda una ubicación en Firebase Firestore.
      */
     fun guardarUbicacion(ubicacion: Ubicacion) {
-        ubicacionesRef.add(ubicacion)
+        val documentRef = ubicacionesRef.document()
+        val ubicacionConId = ubicacion.copy(id = documentRef.id)
+
+        documentRef.set(ubicacionConId)
             .addOnSuccessListener { Log.d("RepositorioFire", "Ubicación guardada correctamente") }
             .addOnFailureListener { e -> Log.e("RepositorioFire", "Error al guardar ubicación", e) }
+    }
+    fun eliminarUbicacion(id: String) {
+        ubicacionesRef.document(id).delete()
+            .addOnSuccessListener { Log.d("RepositorioFire", "Ubicación eliminada correctamente") }
+            .addOnFailureListener { e -> Log.e("RepositorioFire", "Error al eliminar ubicación", e) }
+    }
+    fun actualizarUbicacion(id: String, nuevaUbicacion: Ubicacion) {
+        ubicacionesRef.document(id).set(nuevaUbicacion)
+            .addOnSuccessListener { Log.d("RepositorioFire", "Ubicación actualizada correctamente") }
+            .addOnFailureListener { e -> Log.e("RepositorioFire", "Error al actualizar ubicación", e) }
     }
 
     /**
